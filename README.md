@@ -5,7 +5,7 @@ This repository contains the solutions of the 8 case studies from the **[#8WeekS
 I used MySQL Workbench to write queries to solve these case studies. 
 
 ## 📚 Table of Contents 
-- [Case Study #1: Danny's Diner]()
+- [Case Study #1: Danny's Diner](https://github.com/NoeHuangx/8-Week-SQL-Challenge/blob/main/Case%20Study%20%231%20-%20Danny's%20Diner/README.md)
 - [Case Study #2: Pizza Runner]()
 - [Case Study #3: Foodie-Fi]()
 - [Case Study #4: Data Bank]()
