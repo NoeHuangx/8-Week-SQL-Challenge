@@ -7,6 +7,12 @@
 Please view the detailed case study info <a href="https://8weeksqlchallenge.com/case-study-1/">here</a>. 
 
 
+## 📚 Table of Contents
+- [Business Task](#business-task)
+- [Questions And Solutions](#questions-and-solutions)
+
+***
+
 ## Business Task
 Danny wants to use the data to answer a few simple questions about his customers, especially their visiting patterns, how much money they’ve spent, and which menu items are their favorites.
 
@@ -20,6 +26,7 @@ The entity relationship diagram is as below:
 <img width="548" alt="image" src="https://github.com/NoeHuangx/8-Week-SQL-Challenge/assets/148400128/d3e68cca-c81c-4dcb-8e54-af5e99371c95">
 </p>
 
+***
 
 ## Questions and Solutions 
 ### 1. What is the total amount each customer spent at the restaurant? 
