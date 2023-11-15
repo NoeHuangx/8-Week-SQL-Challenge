@@ -41,11 +41,7 @@ FROM
     menu m ON s.product_id = m.product_id
 GROUP BY s.customer_id
 ORDER BY s.customer_id;
-```
-
-**Steps:**
-- `INNER JOIN` `sales` and `menu` tables using `product_id` because `customer_id` can be found on the `sales` table while `price` can be found on the `menu`.
-- `GROUP BY` `customer_id` then use the aggregate function `SUM` to find the amount each customer spent and `ORDER BY` `customer_id`.   
+```  
 
 **Answer:**
 |customer_id | total_spent |
@@ -65,10 +61,6 @@ FROM
     sales
 GROUP BY customer_id;
 ```
-
-**Steps:**
-- Use `GROUP BY` to group `customer_id` then use aggregate function `COUNT`.
-- While using `COUNT` function, add `DISTINCT` to only include unique `order_date` values, instead of counting all the dates with repetitive data. 
 
 **Answer:**
 | customer_id | visit_count|
@@ -94,10 +86,6 @@ SELECT customer_id, product_name, order_date FROM order_rank WHERE rnk = 1
 GROUP BY customer_id, product_name; 
 ```
 
-**Steps:**
-- Create a common table expression (CTE) called `order_rank`. Within the CTE, create a new column called `rnk` using `DENSE_RANK()`,`PARTITION BY customer_id`, and `ORDER BY order_date`. `PARTITION BY` divides the data into groups based on `customer_id`, while `ORDER BY` arranges the data based on `order_date` then `DENSE_RANK` creates rank numbers within each data group. 
-- Select the data from the CTE only where `rnk` is equal to 1. 
-
 **Answer:** 
 |customer_id |product_name |order_date|
 |------------|-------------|----------|
@@ -121,10 +109,6 @@ GROUP BY m.product_name
 ORDER BY order_count DESC
 LIMIT 1; 
 ```
-
-**Steps:** 
-- `INNER JOIN` `sales` and `menu` table using `product_id`. 
-- `GROUP BY` `product_name` to use the aggregate function `COUNT` to get the number of times each item is ordered, then `ORDER BY` the new column created by `COUNT` in descending order and limit the output to 1 to get the most purchased item. 
 
 **Answer:** 
 |product_name|order_count|
@@ -150,10 +134,6 @@ GROUP BY customer_id, product_name)
 SELECT customer_id, product_name, order_count
 FROM units_sold WHERE rnk = 1; 
 ```
-
-**Steps:**
-- Create a common table expression(CTE) called `units_sold` by joining sales and menu tables using `product_id` and `GROUP BY` `customer_id` and `product_name`. Then, `customer_id`, `product_name`, a new column named `order_count` created by using the `COUNT` function, and second new column named `rnk` created by using `DENSE_RANK()` function, are selected into `units_sold` CTE.
-- Simply, select `customer_id`, `product_name` and `order_count` from `units_sold` CTE where `rnk` is equal to 1. 
 
 **Answer:**
 |customer_id|product_name|order_count|
@@ -181,10 +161,6 @@ SELECT customer_id, product_name, order_date, join_date
 FROM order_after_member WHERE rnk = 1;
 ```
 
-**Steps:**
-- Create CTE named `order_afer_member` by joining the `sales`, `members`, and `menu` tables. Then, select `customer_id`, `order_date`, `product_name`, `join_date`, and a new column called `rnk` by using `DENSE_RANK()` with `PARTITION BY customer_id` and `ORDER BY order_date` into `order_after_member` CTE. And, filter the CTE only to have data where `order_date` is after the `join_date`.
-- Then simply select data from `order_after_member` CTE where `rnk` is equal to 1. 
-
 **Answer:**
 |customer_id|product_name|order_date|join_date |
 |-----------|------------|----------|--------- |
@@ -207,10 +183,6 @@ ORDER BY s.customer_id)
 SELECT customer_id, product_name, order_date, join_date
 FROM order_before_member WHERE rnk = 1;
 ```
-
-**Steps:**
-- Similar to question 6, create a CTE called `order_before_member` by joining all three tables while filtering out the data where `order_date` is after `join_date`. And, `customer_id`, `order_date`, `product_name`, `join_date`, and a new column called `rnk` by using `DENSE_RANK()` with `PARTITION BY customer_id` and `ORDER BY order_date DESC` are added into the `order_before_member` CTE.
-- Select data from the CTE where `rnk` is equal to 1. 
 
 **Answer:**
 |customer_id|product_name|order_date|join_date |
@@ -235,10 +207,6 @@ GROUP BY b.customer_id
 ORDER BY b.customer_id;
 ```
 
-**Steps:**
-- Create CTE called `before_member` by joining `sales` and `members` tables and filter the data only to have the data where `order_date` is before `join_date`.
-- Select `customer_id`, use `COUNT` to get the total item counts, and use `SUM` for the total amount spent from the `before_member` CTE. 
-
 **Answer:**
 |customer_id|items_count|total_amount_spent|
 |-----------|-----------|------------------|
@@ -262,10 +230,6 @@ FROM
 GROUP BY s.customer_id
 ORDER BY s.customer_id; 
 ```
-
-**Steps:** 
-- Join `sales` and `menu` tables using `product_id`, then `GROUP BY` customer_id
-- Use `CASE` to set up the scenario when `product_id` equals one, multiply the price by 20. Otherwise, multiply the price by 10. 
 
 **Answer:**
 | customer_id |points_collected|
@@ -298,11 +262,6 @@ FROM sales s JOIN promo_week p ON s.customer_id = p.customer_id
     GROUP BY p.customer_id
     ORDER BY p.customer_id;
 ```
-
-**Steps:** 
-- Create a CTE named `promo_week` using the `members` table. Use `DATE_ADD` to create the promotional period for each user, which is the first week of customers joining the membership.
-- Join the `sales` and `menu` tables with the `promo_week` CTE and `GROUP BY` customer_id, then filter  only to have January data.
-- Use `CASE` to set up the scenario where `order_date` is the first week of joining the membership, it is 20 times item price. After the first week, the sushi is 20 times item price, while the rest are 10 times item price. Then, `SUM` all the results from `CASE` to calculate the points_collected. 
 
 **Answer:** 
 | customer_id |points_collected|
