@@ -280,19 +280,19 @@ ORDER BY s.customer_id;
 ```mysql
 WITH promo_week AS (
 SELECT 
-	customer_id, 
+    customer_id, 
     join_date, 
     DATE_ADD(join_date, INTERVAL 6 DAY) AS valid_date
 FROM members) 
 
 SELECT
-	p.customer_id, 
+    p.customer_id, 
     SUM(CASE
 		WHEN s.order_date BETWEEN p.join_date AND p.valid_date THEN price*10*2
         WHEN m.product_name = 'sushi' THEN m.price*10*2
         ELSE price*10 
     END) AS points_collected 
-    FROM sales s JOIN promo_week p ON s.customer_id = p.customer_id
+FROM sales s JOIN promo_week p ON s.customer_id = p.customer_id
     JOIN menu m ON s.product_id = m.product_id
       AND s.order_date <= '2021-01-31'
     GROUP BY p.customer_id
@@ -316,17 +316,17 @@ SELECT
 **Join All The Things**
 
 ```mysql
-   SELECT 
-		s.customer_id, 
+SELECT 
+	s.customer_id, 
         s.order_date, 
         m.product_name, 
         m.price, 
         CASE
-			WHEN s.order_date < mm.join_date THEN 'N' 
+	    WHEN s.order_date < mm.join_date THEN 'N' 
             WHEN s.order_date >= mm.join_date THEN 'Y' 
             WHEN mm.join_date IS NULL THEN 'N'
         END AS 'member'
-	FROM sales s LEFT JOIN members mm
+FROM sales s LEFT JOIN members mm
         ON s.customer_id = mm.customer_id 
     LEFT JOIN menu m 
         ON s.product_id = m.product_id;
@@ -338,22 +338,22 @@ SELECT
  ```mysql
  WITH loyalty_program AS (
  SELECT 
-		s.customer_id, 
+	s.customer_id, 
         s.order_date, 
         m.product_name, 
         m.price, 
         CASE
-			WHEN s.order_date < mm.join_date THEN 'N' 
+	    WHEN s.order_date < mm.join_date THEN 'N' 
             WHEN s.order_date >= mm.join_date THEN 'Y' 
             WHEN mm.join_date IS NULL THEN 'N'
         END AS 'member'
-	FROM sales s LEFT JOIN members mm
+FROM sales s LEFT JOIN members mm
           ON s.customer_id = mm.customer_id 
     LEFT JOIN menu m
           ON s.product_id = m.product_id) 
 
 SELECT 
-	customer_id, 
+    customer_id, 
     order_date, 
     product_name, 
     price, 
