@@ -9,7 +9,7 @@ Please view the detailed case study info <a href="https://8weeksqlchallenge.com/
 
 ## 📚Table of Contents
 - [Business Task](#business-task)
-- [Questions And Solutions](#questions-and-solutions)
+- [Questions and Solutions](#questions-and-solutions)
 
 ***
 
