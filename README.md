@@ -9,7 +9,7 @@ I used MySQL Workbench to write queries to solve these case studies.
 - [Case Study #2: Pizza Runner](https://github.com/NoeHuangx/8-Week-SQL-Challenge/blob/main/Case%20Study%20%232-%20Pizza%20Runner/README.md)
 - [Case Study #3: Foodie-Fi](https://github.com/NoeHuangx/8-Week-SQL-Challenge/blob/main/Case%20Study%20%233%20-%20Foodie-Fi/README.md)
 - [Case Study #4: Data Bank](https://github.com/NoeHuangx/8-Week-SQL-Challenge/blob/main/Case%20Study%20%234%20-%20Data%20Bank/README.md)
-- [Case Study #5: Data Mart]()
+- [Case Study #5: Data Mart](https://github.com/NoeHuangx/8-Week-SQL-Challenge/blob/main/Case%20Study%20%235%20-%20Data%20Mart/README.md)
 - [Case Study #6: Clique Bait]()
 - [Case Study #7: Balanced Tree]()
 - [Case Study #8: Fresh Segments]()
