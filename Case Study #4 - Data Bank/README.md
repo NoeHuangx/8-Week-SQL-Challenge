@@ -4,7 +4,7 @@
 <img width='400px' src="https://8weeksqlchallenge.com/images/case-study-designs/4.png">
 </p>
 
-Please view the detailed case study info [here](https://8weeksqlchallenge.com/case-study-4/)
+Please view the detailed case study info [here](https://8weeksqlchallenge.com/case-study-4/).
 
 
 ## 📚Table of Contents 
