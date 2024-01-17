@@ -473,7 +473,7 @@ Which areas of the business have the highest negative impact on sales metrics pe
 - customer_type
 Do you have any further recommendations for Danny's team at Data Mart or any interesting insights based on this analysis?
 
-#### By region: 
+#### By `region`: 
 ```mysql
 WITH sales_package AS (
 	SELECT 
@@ -521,9 +521,177 @@ FROM
 |SOUTH AMERICA|213036207|208452033|-4584174|-2.15|
 
 
+#### By `platform`: 
+```mysql
+ WITH sales_package AS (
+	SELECT 
+		week_date, 
+        week_number, 
+        platform, 
+        SUM(sales) AS total_sales 
+	FROM 
+		clean_weekly_sales 
+	WHERE 
+		(week_number BETWEEN 13 AND 36) AND 
+		(calendar_year = '2020')
+	GROUP BY 	
+		week_date, week_number, platform
+), 
 
+before_after AS (
+	SELECT 
+		platform, 
+        SUM(IF(week_number BETWEEN 13 AND 24, total_sales, 0)) AS before_sales, 
+        SUM(IF(week_number BETWEEN 25 AND 36, total_sales, 0)) AS after_sales
+	FROM 
+		sales_package
+	GROUP BY 
+		platform
+)
 
+SELECT 
+	*, 
+    after_sales - before_sales AS sales_diff, 
+    ROUND(100*(after_sales - before_sales)/before_sales, 2) AS change_percentage
+FROM 
+	before_after; 
+```
 
+**Answer:**
+|platform|before_sales|after_sales|sales_diff|change_percentage|
+|--------|------------|-----------|----------|-----------------|
+|Retail|6906861113|6738777279|-168083834|-2.43|
+|Shopify|219412034|235170474|15758440|7.18|
+
+#### By `age_band`: 
+```mysql
+WITH sales_package AS (
+	SELECT 
+		week_date, 
+        week_number, 
+        age_band, 
+        SUM(sales) AS total_sales 
+	FROM 
+		clean_weekly_sales 
+	WHERE 
+		(week_number BETWEEN 13 AND 36) AND 
+		(calendar_year = '2020')
+	GROUP BY 	
+		week_date, week_number, age_band
+), 
+
+before_after AS (
+	SELECT 
+		age_band, 
+        SUM(IF(week_number BETWEEN 13 AND 24, total_sales, 0)) AS before_sales, 
+        SUM(IF(week_number BETWEEN 25 AND 36, total_sales, 0)) AS after_sales
+	FROM 
+		sales_package
+	WHERE age_band IS NOT NULL
+	GROUP BY 
+		age_band
+)
+
+SELECT 
+	*, 
+    after_sales - before_sales AS sales_diff, 
+    ROUND(100*(after_sales - before_sales)/before_sales, 2) AS change_percentage
+FROM 
+	before_after; 
+```
+
+**Answer:** 
+|age_band|before_sales|after_sales|sales_diff|change_percentage|
+|--------|------------|-----------|----------|----------------|
+|Retirees|2395264515|2365714994|-29549521|-1.23|
+|Young Adults|801806528|794417968|-7388560|-0.92|
+|Middle Aged|1164847640|1141853348|-22994292|-1.97|
+
+#### By `demographic`: 
+```mysql
+WITH sales_package AS (
+	SELECT 
+		week_date, 
+        week_number, 
+        demographic, 
+        SUM(sales) AS total_sales 
+	FROM 
+		clean_weekly_sales 
+	WHERE 
+		(week_number BETWEEN 13 AND 36) AND 
+		(calendar_year = '2020')
+	GROUP BY 	
+		week_date, week_number, demographic
+), 
+
+before_after AS (
+	SELECT 
+		demographic, 
+        SUM(IF(week_number BETWEEN 13 AND 24, total_sales, 0)) AS before_sales, 
+        SUM(IF(week_number BETWEEN 25 AND 36, total_sales, 0)) AS after_sales
+	FROM 
+		sales_package
+	WHERE demographic IS NOT NULL
+	GROUP BY 
+		demographic
+)
+
+SELECT 
+	*, 
+    after_sales - before_sales AS sales_diff, 
+    ROUND(100*(after_sales - before_sales)/before_sales, 2) AS change_percentage
+FROM 
+	before_after; 
+```
+
+**Answer:**
+|demographic|before_sales|after_sales|sales_diff|change_percentage|
+|-----------|------------|-----------|----------|-----------------|
+|Couples|2033589643|2015977285|-17612358|-0.87|
+|Families|2328329040|2286009025|-42320015|-1.82|
+
+#### By `customer_type`: 
+```mysql
+WITH sales_package AS (
+	SELECT 
+		week_date, 
+        week_number, 
+        customer_type, 
+        SUM(sales) AS total_sales 
+	FROM 
+		clean_weekly_sales 
+	WHERE 
+		(week_number BETWEEN 13 AND 36) AND 
+		(calendar_year = '2020')
+	GROUP BY 	
+		week_date, week_number, customer_type
+), 
+
+before_after AS (
+	SELECT 
+		customer_type, 
+        SUM(IF(week_number BETWEEN 13 AND 24, total_sales, 0)) AS before_sales, 
+        SUM(IF(week_number BETWEEN 25 AND 36, total_sales, 0)) AS after_sales
+	FROM 
+		sales_package
+	GROUP BY 
+		customer_type
+)
+
+SELECT 
+	*, 
+    after_sales - before_sales AS sales_diff, 
+    ROUND(100*(after_sales - before_sales)/before_sales, 2) AS change_percentage
+FROM 
+	before_after; 
+```
+
+**Answer:**
+|customer_type|before_sales|after_sales|sales_diff|change_percentage|
+|-------------|------------|-----------|----------|-----------------|
+|New|862720419|871470664|8750245|1.01|
+|Guest|2573436301|2496233635|-77202666|-3.00|
+|Existing|3690116427|3606243454|-83872973|-2.27|
 
 
 
