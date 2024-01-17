@@ -347,8 +347,180 @@ WHERE
 #### 1. What is the total sales for the 4 weeks before and after `2020-06-15`? What is the growth or reduction rate in actual values and percentage of sales? 
 
 ```mysql
+WITH package_sales AS (
+	SELECT
+		week_date, 
+        week_number, 
+		SUM(sales) AS total_sales 
+	FROM 
+		clean_weekly_sales 
+	WHERE 
+		(week_number BETWEEN 21 AND 28) AND
+		(calendar_year = '2020')
+	GROUP BY 
+		week_date, week_number
+), 
 
+before_after AS (
+	SELECT 
+		SUM(IF(week_number BETWEEN 21 AND 24, total_sales, 0)) AS before_change, 
+        SUM(IF(week_number BETWEEN 25 AND 28, total_sales, 0)) AS after_change
+	FROM 
+		package_sales
+)
+
+SELECT 
+	before_change, 
+    after_change, 
+    after_change - before_change AS sales_diff, 
+    ROUND(100*(after_change - before_change)/before_change, 2) AS change_percentage
+FROM 
+	before_after; 
 ```
+
+**Answer:**
+|before_change|after_change|sales_diff|Change_percentage|
+|-------------|------------|----------|-----------------|
+|2345878357|2318994169|-26884188|-1.15|
+
+#### 2. What about the entire 12 weeks before and after? 
+
+```mysql
+WITH change_sales AS (
+	SELECT 
+		week_date, 
+        week_number, 
+        SUM(sales) AS total_sales 
+	FROM 
+		clean_weekly_sales 
+	WHERE 
+		(week_number BETWEEN 13 AND 36) AND 
+		(calendar_year = '2020')
+	GROUP BY 	
+		week_date, week_number
+),
+
+before_and_after AS (
+	SELECT 
+		SUM(IF(week_number BETWEEN 13 AND 24, total_sales, 0)) AS before_sales, 
+        SUM(IF(week_number BETWEEN 25 AND 36, total_sales, 0)) AS after_sales
+	FROM 
+		change_sales
+)
+
+SELECT 
+	before_sales, 
+    after_sales, 
+    after_sales - before_sales AS sales_diff, 
+    ROUND(100*(after_sales - before_sales)/before_sales, 2) AS change_percentage
+FROM 
+	before_and_after; 
+```
+
+**Answer:**
+|before_sales|after_sales|sales_diff|change_percentage|
+|------------|-----------|----------|-----------------|
+|7126273147|6973947753|-152325394|-2.14|
+
+#### 3. How do the sales metrics for these 2 periods before and after compare with the previous years in 2018 and 2019? 
+
+```mysql
+WITH sales_package AS (
+	SELECT 
+		week_date, 
+        week_number, 
+        calendar_year,
+        SUM(sales) AS total_sales 
+	FROM 
+		clean_weekly_sales 
+	WHERE week_number BETWEEN 21 and 28 
+    GROUP BY week_date
+), 
+
+before_and_after AS (
+	SELECT 
+		calendar_year, 
+        SUM(IF(week_number BETWEEN 21 AND 24, total_sales, 0)) AS WK21_to_WK24_sales,
+        SUM(IF(week_number BETWEEN 25 AND 28, total_sales, 0)) AS WK25_to_WK28_sales
+	FROM 
+		sales_package
+	GROUP BY calendar_year
+)
+
+SELECT
+	*, 
+    WK25_to_WK28_sales - WK21_to_WK24_sales AS sales_diff, 
+    ROUND(100*(WK25_to_WK28_sales - WK21_to_WK24_sales)/WK21_to_WK24_sales, 2) AS change_percentage
+FROM 
+	before_and_after
+ORDER BY calendar_year; 
+```
+
+**Answer:**
+|calendar_year|WK21_to_WK24_sales|WK25_to_WK28_sales|sales_diff|change_percentage|
+|-------------|------------------|------------------|----------|-----------------|
+|2018|2125140809|2129242914|4102105|0.19|
+|2019|2249989796|2252326390|2336594|0.10|
+|2020|2345878357|2318994169|-26884188|-1.15|
+
+
+### D. Bonus Question
+Which areas of the business have the highest negative impact on sales metrics performance in 2020 for the 12-week before and after period? 
+- region
+- platform
+- age_band
+- demographic
+- customer_type
+Do you have any further recommendations for Danny's team at Data Mart or any interesting insights based on this analysis?
+
+#### By region: 
+```mysql
+WITH sales_package AS (
+	SELECT 
+		week_date, 
+        week_number, 
+        region, 
+        SUM(sales) AS total_sales 
+	FROM 
+		clean_weekly_sales 
+	WHERE 
+		(week_number BETWEEN 13 AND 36) AND 
+		(calendar_year = '2020')
+	GROUP BY 	
+		week_date, week_number, region 
+), 
+
+before_after AS (
+	SELECT 
+		region, 
+        SUM(IF(week_number BETWEEN 13 AND 24, total_sales, 0)) AS before_sales, 
+        SUM(IF(week_number BETWEEN 25 AND 36, total_sales, 0)) AS after_sales
+	FROM 
+		sales_package
+	GROUP BY 
+		region
+)
+
+SELECT 
+	*, 
+    after_sales - before_sales AS sales_diff, 
+    ROUND(100*(after_sales - before_sales)/before_sales, 2) AS change_percentage
+FROM 
+	before_after; 
+```
+
+**Answer:**
+|region|before_sales|after_sales|sales_diff|change_percentage|
+|------|------------|-----------|----------|-----------------|
+|ASIA  |1637244466  |1583807621|-53436845|-3.26|
+|USA|677013558|666198715|-10814843|-1.60|
+|EUROPE|108886567|114038959|5152392|4.73|
+|AFRICA|17095377105|1700390294|-9146811|-0.54|
+|CANADA|426438454|418264441|-8174013|-1.92|
+|OCEANIA|2354116790|2282795690|-71321100|-3.03|
+|SOUTH AMERICA|213036207|208452033|-4584174|-2.15|
+
+
 
 
 
