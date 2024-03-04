@@ -234,11 +234,11 @@ LIMIT 3;
 
 Using a single SQL query - create a new output table which has the following details:
 
-How many times was each product viewed?
-How many times was each product added to cart?
-How many times was each product added to a cart but not purchased (abandoned)?
-How many times was each product purchased?
-Additionally, create another table which further aggregates the data for the above points but this time for each product category instead of individual products.
+- How many times was each product viewed?
+- How many times was each product added to cart?
+- How many times was each product added to a cart but not purchased (abandoned)?
+- How many times was each product purchased?
+
 
 ```mysql
 DROP TABLE IF EXISTS product_info; 
@@ -305,6 +305,246 @@ ORDER BY product_id);
 |7|Lobster|Shellfish|1547|968|214|754|
 |8|Crab|Shellfish|1564|949|230|719|
 |9|Oyster|Shellfish|1568|943|217|726|
+
+
+Additionally, create another table that further aggregates the data for the above points but this time for each product category instead of individual products.
+
+```mysql
+DROP TABLE IF EXISTS product_category_info; 
+CREATE TABLE product_category_info (
+WITH product_info AS (
+	SELECT 
+		e.visit_id,
+        e.event_type, 
+        p.page_name AS product_name, 
+        p.product_category, 
+        p.product_id
+	FROM 
+		events e
+	JOIN page_hierarchy p ON p.page_id = e.page_id       
+), 
+
+page_cart AS (
+	SELECT 
+		product_id, 
+        product_name, 
+        product_category, 
+        CASE
+			WHEN event_type = 1 THEN visit_id 
+        END AS views_id, 
+        CASE
+			WHEN event_type = 2 THEN visit_id 
+        END AS cart_id 
+	FROM 
+		product_info
+), 
+
+purchase_cte AS (
+	SELECT 
+		visit_id AS purchase_id 
+	FROM events 
+	WHERE event_type = 3
+)
+
+SELECT
+    product_category, 
+    COUNT(views_id) AS page_views, 
+    COUNT(cart_id) AS added_to_cart, 
+    COUNT(cart_id) - COUNT(purchase_id) AS abandoned,
+    COUNT(purchase_id) AS purchase_count
+FROM 	
+	page_cart pc
+LEFT JOIN purchase_cte p ON pc.cart_id = p.purchase_id
+WHERE product_id IS NOT NULL
+GROUP BY product_category
+ORDER BY product_category); 
+```
+
+**Answer:** 
+|product_category|page_views|added_to_cart|abandoned|purchase_count|
+|----------------|----------|-------------|---------|--------------|
+|Fish|4633|2789|674|2115|
+|Luxury|3032|1870|466|1404|
+|Shellfish|6204|3792|894|2898|
+
+Use the 2 new output tables to answer the following questions: 
+
+#### 1. Which product had the most views, cart adds and purchases?
+
+**Most Views:** 
+```mysql
+SELECT 
+    product_name, page_views
+FROM
+    product_info
+WHERE
+    page_views = (SELECT 
+            MAX(page_views)
+        FROM
+            product_info);  
+```
+
+**Answer:** 
+|product_name|page_views|
+|------------|----------|
+|Oyster|1568|
+
+**Most Cart Adds:** 
+```mysql
+SELECT 
+    product_name, added_to_cart
+FROM
+    product_info
+WHERE
+    added_to_cart = (SELECT 
+            MAX(added_to_cart)
+        FROM
+            product_info); 
+```
+
+**Answer:** 
+|product_name|added_to_cart|
+|------------|-------------|
+|Lobster|968|
+
+**Most Purchase:**
+```mysql
+SELECT 
+    product_name, purchase_count
+FROM
+    product_info
+WHERE
+    purchase_count = (SELECT 
+            MAX(purchase_count)
+        FROM
+            product_info); 
+```
+
+**Answer:** 
+|product_name|purchase_count|
+|------------|--------------|
+|Lobster|754|
+
+#### 2. Which product was most likely to be abandoned?
+
+```mysql
+SELECT 
+    product_name, abandoned
+FROM
+    product_info
+ORDER BY abandoned DESC
+LIMIT 1; 
+```
+
+**Answer:** 
+|product_name|abandoned|
+|------------|---------|
+|Russian Caviar|249|
+
+#### 3. Which product had the highest view to purchase percentage?
+
+```mysql
+SELECT 
+	product_name, 
+    ROUND(100*purchase_count/page_views, 2) AS view_to_purchase_percent 
+FROM 
+	product_info
+ORDER BY 
+	view_to_purchase_percent DESC
+LIMIT 1; 
+```
+
+**Answer:** 
+|product_name|view_to_purchase_percent|
+|------------|------------------------|
+|Lobster|48.74|
+
+#### 4. What is the average conversion rate from view to cart add?
+
+```mysql
+SELECT 
+    ROUND(AVG(added_to_cart / page_views) * 100, 2) AS avg_conversion_rate
+FROM
+    product_info; 
+```
+
+**Answer:** 
+|avg_conversion_rate|
+|-------------------|
+|60.95|
+
+#### 5. What is the average conversion rate from cart add to purchase?
+
+```mysql
+SELECT 
+    ROUND(AVG(purchase_count / added_to_cart) * 100,
+            2) AS avg_conversion_rate
+FROM
+    product_info; 
+```
+
+**Answer:** 
+|avg_conversion_rate|
+|-------------------|
+|75.93|
+
+### C. Campaigns Analysis 
+Generate a table that has 1 single row for every unique visit_id record and has the following columns:
+
+- user_id
+- visit_id
+- visit_start_time: the earliest event_time for each visit
+- page_views: count of page views for each visit
+- cart_adds: count of product cart add events for each visit
+- purchase: 1/0 flag if a purchase event exists for each visit
+- campaign_name: map the visit to a campaign if the visit_start_time falls between the start_date and end_date
+- impression: count of ad impressions for each visit
+- click: count of ad clicks for each visit
+- (Optional column) cart_products: a comma separated text value with products added to the cart sorted by the order they were added to the cart (hint: use the sequence_number)
+
+```mysql
+DROP TABLE IF EXISTS campaign_analysis; 
+CREATE TABLE campaign_analysis (
+SELECT 
+	u.user_id, 
+    e.visit_id, 
+    MIN(e.event_time) AS visit_start_time, 
+    SUM(IF(ei.event_name = 'Page View', 1, 0)) AS page_views, 
+    SUM(IF(ei.event_name = 'Add to Cart', 1, 0)) AS cart_adds, 
+    SUM(IF(ei.event_name = 'Purchase', 1, 0)) AS purchase, 
+    c.campaign_name, 
+    SUM(IF(ei.event_name = 'Ad Impression', 1, 0)) AS impression, 
+    SUM(IF(ei.event_name = 'Ad Click', 1, 0)) AS click,
+    GROUP_CONCAT(
+ 		CASE
+ 			WHEN p.product_id IS NOT NULL AND ei.event_name = 'Add to Cart' 
+ 				THEN p.page_name
+ 			ELSE NULL
+		END ORDER BY e.sequence_number SEPARATOR ', ') AS cart_products  
+FROM events e
+JOIN users u ON u.cookie_id = e.cookie_id
+JOIN event_identifier ei ON ei.event_type = e.event_type
+LEFT JOIN campaign_identifier c ON e.event_time BETWEEN c.start_date AND c.end_date
+JOIN page_hierarchy p ON p.page_id = e.page_id
+GROUP BY u.user_id, e.visit_id
+ORDER BY u.user_id); 
+```
+
+**Answer:** 
+
+
+*I am only showing the result for user_id 1 from `campaign_analysis`.*
+
+|user_id|visit_id|visit_start_time|page_views|cart_adds|purchase|campaign_name|impression|click|cart_products|
+|-------|--------|----------------|----------|---------|--------|--------------|---------|-----|------------|
+|1|02a5d5|2020-02-26 16:57:26|4|0|0|Half Off - Treat Your Shellf(ish)|0|0|NULL|
+|1|0826dc|2020-02-26 05:58:38|1|0|0|Half Off - Treat YOur Shellf(ish)|0|0|NULL|
+|1|0fc437|2020-02-04 17:49:50|10|6|1|Half Off - Treat YOur Shellf(ish)|1|1|Tuna, Russian Caviar, Black Truffle, Abalone, Crab, Oyster|
+|1|30b94d|2020-03-15 13:12:54|9|7|Half Off - Treat YOur Shellf(ish)|1|1|Salmon, Kingfish, Tuna, Russian Caviar, Abalone, Lobster, Crab|
+|1|41355d|2020-03-25 00:11:18|6|1|0|Half Off - Treat YOur Shellf(ish)|0|0|Lobster|
+|1|ccf365|2020-02-04 19:16:09|7|3|1|Half Off - Treat YOur Shellf(ish)|0|0|Lobster, Crab, Oyster|
+|1|eaffde|2020-03-25 20:06:32|10|8|1|Half Off - Treat YOur Shellf(ish)|1|1|Salmon, Tuna, Russian Caviar, Black Truffle, Abalone, Lobster, Crab, Oyster|
+|1|f7c798|2020-03-15 02:23:26|9|3|1|Half Off - Treat YOur Shellf(ish)|0|0|Russian Caviar, Crab, Oyster|
 
 
 
